@@ -1,0 +1,9 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Erstelle die Datei "ansible_works.check" im Root-Verzeichnis
+      file:
+        path: /root/ansible_works.check
+        state: touch
+        mode: '0644'
