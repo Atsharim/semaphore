@@ -17,6 +17,3 @@
     - name: Clean up the package cache
       apt:
         autoclean: yes
-
-    - name: Delete temporary files
-      command: tmpreaper -f /tmp
