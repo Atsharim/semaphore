@@ -1,0 +1,22 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Upgrade all packages
+      apt:
+        upgrade: dist
+
+    - name: Remove unused packages
+      apt:
+        autoremove: yes
+
+    - name: Clean up the package cache
+      apt:
+        autoclean: yes
+
+    - name: Delete temporary files
+      command: tmpreaper -f /tmp
