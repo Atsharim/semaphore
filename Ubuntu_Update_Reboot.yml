@@ -20,12 +20,12 @@
           apt:
             upgrade: dist
           register: apt_result
-          failed_when: apt_result.rc != 0  # Direkte Prüfung des Rückgabestatus
+          failed_when: apt_result.rc is defined and apt_result.rc != 0  # Sicherstellen, dass rc definiert ist
 
         - name: Fail if apt upgrade failed
           fail:
             msg: "apt upgrade failed"
-          when: apt_result.rc != 0  # Direkte Prüfung des Rückgabestatus
+          when: apt_result.rc is defined and apt_result.rc != 0  # Sicherstellen, dass rc definiert ist
 
         - name: Remove unused packages
           apt:
