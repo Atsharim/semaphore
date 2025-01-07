@@ -1,0 +1,30 @@
+---
+- hosts: windows
+  gather_facts: no  # Wir verwenden win_ping, das Fakten sammelt
+  become: true
+  name: Windows System Update with Reboot
+
+  tasks:
+    - name: Ping the host
+      win_ping:
+      register: ping_result
+      ignore_errors: true  # Ignoriere Fehler beim Ping
+
+    - name: Continue only if the host is reachable
+      block:
+        - name: Install Windows Updates
+          win_updates:
+            state: installed
+          register: update_result
+
+        - name: Fail if updates failed to install
+          fail:
+            msg: "Windows Updates installation failed."
+          when: update_result.reboot_required is not defined
+
+        - name: Reboot the server if required
+          win_reboot:
+            connect_timeout: 5
+            reboot_timeout: 300
+          when: update_result.reboot_required
+      when: ping_result.ping == "pong"
