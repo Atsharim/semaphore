@@ -20,6 +20,7 @@
           apt:
             upgrade: dist
           register: apt_result
+          failed_when: apt_result.results[0].rc != 0
 
         - name: Fail if apt upgrade failed
           fail:
