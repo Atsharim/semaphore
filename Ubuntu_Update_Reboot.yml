@@ -19,6 +19,7 @@
         - name: Upgrade all packages
           apt:
             upgrade: dist
+          register: apt_result
           failed_when: apt.rc != 0
 
         - name: Remove unused packages
