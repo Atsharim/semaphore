@@ -1,0 +1,37 @@
+---
+- hosts: all
+  become: true
+  name: Ubuntu System Update with Reboot
+  description: Aktualisiert alle Pakete auf Ubuntu Systemen und führt einen Neustart nach 1 Minute durch.
+
+  tasks:
+    - name: Ping the host
+      ping:
+      register: ping_result
+      ignore_errors: true  # Ignoriere Fehler beim Ping, um den Job nicht als fehlerhaft zu markieren
+
+    - name: Continue only if the host is reachable
+      block:
+        - name: Update apt cache
+          apt:
+            update_cache: yes
+          changed_when: false
+
+        - name: Upgrade all packages
+          apt:
+            upgrade: dist
+          failed_when: "'apt' failed"
+
+        - name: Remove unused packages
+          apt:
+            autoremove: yes
+
+        - name: Clean up the package cache
+          apt:
+            autoclean: yes
+
+        - name: Reboot the server after 1 minute
+          command: shutdown -r +1
+          become: true
+
+      when: ping_result.ping == "pong"  # Führe die Tasks nur aus, wenn der Ping erfolgreich war
