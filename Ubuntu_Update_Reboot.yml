@@ -20,12 +20,12 @@
           apt:
             upgrade: dist
           register: apt_result
-          failed_when: apt_result.results[0].rc != 0
+          failed_when: apt_result.rc != 0  # Direkte Prüfung des Rückgabestatus
 
         - name: Fail if apt upgrade failed
           fail:
             msg: "apt upgrade failed"
-          when: apt_result.rc != 0
+          when: apt_result.rc != 0  # Direkte Prüfung des Rückgabestatus
 
         - name: Remove unused packages
           apt:
