@@ -2,7 +2,6 @@
 - hosts: all
   become: true
   name: Ubuntu System Update with Reboot
-  description: Aktualisiert alle Pakete auf Ubuntu Systemen und führt einen Neustart nach 1 Minute durch.
 
   tasks:
     - name: Ping the host
