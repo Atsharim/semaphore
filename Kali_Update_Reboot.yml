@@ -1,15 +1,19 @@
 ---
-- hosts: all
+- hosts: all # Or your specific Kali hosts group
   become: true
-  name: Kali System Update with Reboot (Recommended)
+  name: Kali System Update with Reboot (Corrected)
 
   tasks:
     - name: Ping the host
       ping:
-        register: ping_result
-      ignore_errors: true  # Ignore ping errors to avoid job failure
+      register: ping_result # Register the result HERE, outside the ping task
 
-    - name: Continue only if the host is reachable
+    - name: Fail if ping fails
+      fail:
+        msg: "Host 10.1.5.18 is unreachable"
+      when: ping_result.ping != "pong"
+
+    - name: Continue with update/upgrade if ping is successful
       block:
         - name: Update apt cache
           apt:
@@ -29,7 +33,7 @@
 
         - name: Ensure Kali metapackage is installed
           apt:
-            name: kali-linux-default  # Or kali-linux-large, etc.
+            name: kali-linux-default # Or kali-linux-large, etc.
             state: present
 
         - name: Remove unused packages
@@ -40,16 +44,15 @@
           apt:
             autoclean: yes
 
-        - name: Reboot the server after 1 minute (Optional)
-          command: shutdown -r +1  # Consider using the reboot module for more control
-          become: true
-          when: reboot_required.reboot  # Add a conditional based on actual reboot requirement
+        - name: Check if a reboot is required
+          command: needs-restarting -r
+          register: reboot_check
+          changed_when: false
+          failed_when: reboot_check.rc > 1 # needs-restarting returns 1 if reboot is needed, 0 if not, >1 if error
 
-  vars:
-    reboot_required: {  # Optional check for reboot requirement (Example)
-      # Add logic to determine if a reboot is necessary based on updated packages (e.g., kernel update)
-      # This could involve parsing the apt_result.stdout or using a separate command
-      # Here's a placeholder for illustration:
-      "name": "Check for reboot requirement based on apt upgrade",
-      "reboot": false  # Set to true if reboot is necessary
-    }
+        - name: Reboot the server if required
+          reboot:
+            msg: "Reboot initiated by Ansible for updates"
+          when: reboot_check.rc == 1
+
+      when: ping_result.ping == "pong" # Conditionally execute the block
