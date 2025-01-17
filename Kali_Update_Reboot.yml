@@ -1,0 +1,55 @@
+---
+- hosts: all
+  become: true
+  name: Kali System Update with Reboot (Recommended)
+
+  tasks:
+    - name: Ping the host
+      ping:
+        register: ping_result
+      ignore_errors: true  # Ignore ping errors to avoid job failure
+
+    - name: Continue only if the host is reachable
+      block:
+        - name: Update apt cache
+          apt:
+            update_cache: yes
+          changed_when: false
+
+        - name: Upgrade Kali packages (including full upgrade)
+          apt:
+            upgrade: full
+          register: apt_result
+          failed_when: apt_result.rc is defined and apt_result.rc != 0
+
+        - name: Fail if apt upgrade failed
+          fail:
+            msg: "Kali package upgrade failed"
+          when: apt_result.rc is defined and apt_result.rc != 0
+
+        - name: Ensure Kali metapackage is installed
+          apt:
+            name: kali-linux-default  # Or kali-linux-large, etc.
+            state: present
+
+        - name: Remove unused packages
+          apt:
+            autoremove: yes
+
+        - name: Clean up the package cache
+          apt:
+            autoclean: yes
+
+        - name: Reboot the server after 1 minute (Optional)
+          command: shutdown -r +1  # Consider using the reboot module for more control
+          become: true
+          when: reboot_required.reboot  # Add a conditional based on actual reboot requirement
+
+  vars:
+    reboot_required: {  # Optional check for reboot requirement (Example)
+      # Add logic to determine if a reboot is necessary based on updated packages (e.g., kernel update)
+      # This could involve parsing the apt_result.stdout or using a separate command
+      # Here's a placeholder for illustration:
+      "name": "Check for reboot requirement based on apt upgrade",
+      "reboot": false  # Set to true if reboot is necessary
+    }
