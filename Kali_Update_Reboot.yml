@@ -45,7 +45,7 @@
             autoclean: yes
 
         - name: Check if a reboot is required
-          command: needs-restarting -r
+          command: shutdown -r | grep now
           register: reboot_check
           changed_when: false
           failed_when: reboot_check.rc > 1 # needs-restarting returns 1 if reboot is needed, 0 if not, >1 if error
